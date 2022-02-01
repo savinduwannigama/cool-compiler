@@ -45,6 +45,8 @@ extern YYSTYPE cool_yylval;
 
 // To keep track of the length of the current string literal.
 int str_length = 0;
+int opened_comments = 0;
+int opened_parens = 0;
 
 %}
 
@@ -59,7 +61,6 @@ int str_length = 0;
  * The definition can subsequently be referred to using ‘{name}’, which will expand to ‘(definition)’. 
  **************************************************************************************************************/
 
-/* Some of the declaration names used here are same as the ones in cool-parse.h */
 
 /*
  * Start conditions are declared in the definitions (first) section of the input using unindented lines beginning with either ‘%s’ or ‘%x’ 
@@ -75,10 +76,13 @@ int str_length = 0;
 %x STRING_LITERAL
 %x PAREN
 
+/* Some of the declaration names used here are same as the ones in cool-parse.h */
+
 /* Operators. */
 DARROW              =>
 LE                  <=
 ASSIGN              <-
+OTHER               [+\-*(){}/;:,\.@~=<]
 
 DIGIT               [0-9]
 INTEGER             {DIGIT}+
@@ -134,19 +138,33 @@ NEWLINE             \n
  /*
   *  New Lines.
   */
-<COMMENT>{NEWLINE}       { curr_lineno++; }
+
+<COMMENT>{NEWLINE}                { curr_lineno++; }
 
  /*
   *  Nested comments
   */
 
+ /* Increment the number of opened comments when an opening comment token is found if the scanner is either in INITIAL or COMMENT start condition.
+  * Then, activate the COMMENT start condition. 
+  */
+<INITIAL,COMMENT>{OPEN_COMMENT}  { opened_comments++; BEGIN(COMMENT); }
+ /* If the scanner found a closing comment token while in the intial start condition, 
+  * then the found token doesn't have a matching opening comment token.
+  */
+<INITIAL>{CLOSE_COMMENT}          { cool_yylval.error_msg = "Unmatched *)"; return (ERROR); }
+  /* If the scanner found a closing comment token while in the COMMENT start condition, 
+    * then the found token has a matching opening comment token. Decrement the number of opened comments
+    * if it is non-zero. If the number of opened comments is zero, then activate the INITIAL start condition.
+    */
+<COMMENT>{CLOSE_COMMENT}          { if (opened_comments > 0) opened_comments--; if (opened_comments == 0) BEGIN(INITIAL); }
 
  /*
   *  The multiple-character operators.
   */
-{DARROW}		{ return (DARROW); }
-{LE}			  { return (LE); }
-{ASSIGN}		{ return (ASSIGN); }
+{DARROW}		                      { return (DARROW); }
+{LE}			                        { return (LE); }
+{ASSIGN}		                      { return (ASSIGN); }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
