@@ -46,12 +46,46 @@ extern YYSTYPE cool_yylval;
 %}
 
 /*
- * Define names for regular expressions here.
+ * Definitions Section: Contains declarations of simple name definitions to simplify the scanner specification, 
+ * and declarations of start conditions.
+ * 
+ * Name definitions have the form:
+ * 
+ *   name definition
+ * 
+ * The definition can subsequently be referred to using ‘{name}’, which will expand to ‘(definition)’. 
  */
 
-DARROW          =>
+// Flags to be set to true if the corresponding token was encountered.
+%START COMMENT
+%START STRING_LITERAL
+%START PAREN
+
+// Operators
+DARROW              =>
+ASSIGN              <-
+
+DIGIT               [0-9]
+INTEGER             {DIGIT}+
+
+LOWERCASE           [a-z]
+UPPERCASE           [A-Z]
+IDENTIFIER          [{LOWERCASE}{UPPERCASE}{DIGIT}_]
+
+CLASS_ID            {UPPERCASE}{IDENTIFIER}*
+OBJECT_ID           {LOWERCASE}{IDENTIFIER}*
+
+// ... More definitions here ...
 
 %%
+
+/*
+ * Rules Section: The rules section of the flex input contains a series of rules of the form:
+ *
+ *   pattern   action
+ * 
+ * where the pattern must be unindented and the action must begin on the same line.
+ */
 
  /*
   *  Nested comments
@@ -62,6 +96,7 @@ DARROW          =>
   *  The multiple-character operators.
   */
 {DARROW}		{ return (DARROW); }
+{ASSIGN}		{ return (ASSIGN); }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
