@@ -171,9 +171,9 @@ EOF                 <EOF>
  /*
   *  The multiple-character operators.
   */
-{DARROW}		                      { return (DARROW); }
-{LE}			                        { return (LE); }
-{ASSIGN}		                      { return (ASSIGN); }
+{DARROW}		                      { return DARROW; }
+{LE}			                        { return LE; }
+{ASSIGN}		                      { return ASSIGN; }
  /* The character array yytext has the recently matched character. */
 {OTHER}		                        { return (char) yytext[0]; }
 
@@ -181,7 +181,25 @@ EOF                 <EOF>
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
-
+{CLASS}		                        { return CLASS; }
+{ELSE}			                      { return ELSE; }
+{FI}			                        { return FI; }
+{IF}			                        { return IF; }
+{IN}			                        { return IN; }
+{INHERITS}		                    { return INHERITS; }
+{LET}                             { return LET; }
+{LOOP}                            { return LOOP; }
+{POOL}                            { return POOL; }
+{THEN}                            { return THEN; }
+{WHILE}                           { return WHILE; }
+{CASE}                            { return CASE; }
+{ESAC}                            { return ESAC; }
+{OF}                              { return OF; }
+{NEW}                             { return NEW; }
+{ISVOID}                          { return ISVOID; }
+{NOT}                             { return NOT; }
+{TRUE}                            { cool_ylval.boolean = true; return BOOL_CONST; }
+{FALSE}                           { cool_ylval.boolean = false; return BOOL_CONST; }
 
  /*
   *  String constants (C syntax)
