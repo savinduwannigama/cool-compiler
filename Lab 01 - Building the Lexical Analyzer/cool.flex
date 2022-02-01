@@ -174,6 +174,8 @@ EOF                 <EOF>
 {DARROW}		                      { return (DARROW); }
 {LE}			                        { return (LE); }
 {ASSIGN}		                      { return (ASSIGN); }
+ /* The character array yytext has the recently matched character. */
+{OTHER}		                        { return (char) yytext[0]; }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
