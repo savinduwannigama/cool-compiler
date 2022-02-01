@@ -198,8 +198,8 @@ EOF                 <EOF>
 {NEW}                             { return NEW; }
 {ISVOID}                          { return ISVOID; }
 {NOT}                             { return NOT; }
-{TRUE}                            { cool_ylval.boolean = true; return BOOL_CONST; }
-{FALSE}                           { cool_ylval.boolean = false; return BOOL_CONST; }
+{TRUE}                            { cool_yylval.boolean = true; return BOOL_CONST; }
+{FALSE}                           { cool_yylval.boolean = false; return BOOL_CONST; }
 
  /*
   *  String constants (C syntax)
