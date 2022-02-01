@@ -125,6 +125,9 @@ CLOSE_COMMENT       \*\)
 WHITESPACE          [ \t\n\r]
 NEWLINE             \n
 
+ANY_CHARACTER       .
+EOF                 <EOF>
+
 %%
 
  /*************************************************************************************************************
@@ -138,8 +141,8 @@ NEWLINE             \n
  /*
   *  New Lines.
   */
-
-<COMMENT>{NEWLINE}                { curr_lineno++; }
+ /* Increment the current line number when the scanner matches a newline character if it is either in INITIAL or COMMENT start condition. */
+<INITIAL,COMMENT>{NEWLINE}                { curr_lineno++; }
 
  /*
   *  Nested comments
@@ -152,12 +155,18 @@ NEWLINE             \n
  /* If the scanner found a closing comment token while in the intial start condition, 
   * then the found token doesn't have a matching opening comment token.
   */
-<INITIAL>{CLOSE_COMMENT}          { cool_yylval.error_msg = "Unmatched *)"; return (ERROR); }
-  /* If the scanner found a closing comment token while in the COMMENT start condition, 
-    * then the found token has a matching opening comment token. Decrement the number of opened comments
-    * if it is non-zero. If the number of opened comments is zero, then activate the INITIAL start condition.
-    */
+<INITIAL>{CLOSE_COMMENT}          { cool_yylval.error_msg = "Unmatched *)"; return ERROR; }
+ /* If the scanner found a closing comment token while in the COMMENT start condition, 
+  * then the found token has a matching opening comment token. Decrement the number of opened comments
+  * if it is non-zero. If the number of opened comments is zero, then activate the INITIAL start condition.
+  */
 <COMMENT>{CLOSE_COMMENT}          { if (opened_comments > 0) opened_comments--; if (opened_comments == 0) BEGIN(INITIAL); }
+ /* Scanner reads the contents of a comment, should not perform any action. */
+<COMMENT>{ANY_CHARACTER}          { }
+ /* If the scanner finds a comment that remains open when EOF is encountered, report an error. */
+<COMMENT>{EOF}                    { cool_yylval.error_msg = "EOF in comment"; BEGIN(INITIAL); return ERROR; }
+ /* Rule to match single line comments. */
+{LINE_COMMENT}                    { }
 
  /*
   *  The multiple-character operators.
