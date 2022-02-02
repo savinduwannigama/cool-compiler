@@ -86,8 +86,7 @@ class Main {
             cells <- (new CellularAutomaton).init("         X 
                     ");
             cells.print();
-            (* Invalid keyword: lets *)
-            (lets countdown : Int <- 20 in
+            (let countdown : Int <- 20 in
                 while countdown > 0 loop
                     {
                         cells.evolve();

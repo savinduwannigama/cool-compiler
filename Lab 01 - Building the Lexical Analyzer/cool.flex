@@ -131,7 +131,8 @@ NEWLINE             \n
 QUOTE               \"
 ANY_CHARACTER       .
 EOF                 <EOF>
-ESCAPED_NEWLINE     \\\n
+ESCAPED_NEWLINE	 	\\\n
+ESCAPED_CHARS	   	\\[ntbf]
 
 %%
 
@@ -242,9 +243,22 @@ ESCAPED_NEWLINE     \\\n
 	BEGIN(INITIAL);
 	return STR_CONST;
 }
-
  /* ... Handle escape sequences ... */
-
+<STRING_LITERAL>{ESCAPED_CHARS} {
+	if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
+		// Reset the string buffer pointer.
+		*string_buf_ptr = '\0';
+		cool_yylval.error_msg = "String constant too long";
+		BEGIN(INITIAL);
+		return ERROR;
+	}
+	switch (yytext[1]) {
+		case 'n': *string_buf_ptr++ = '\n'; break;
+		case 't': *string_buf_ptr++ = '\t'; break;
+		case 'b': *string_buf_ptr++ = '\b'; break;
+		case 'f': *string_buf_ptr++ = '\f'; break;
+	}
+}
  /*
   * When the scanner reads any other character while in the STRING_LITERAL start condition,
   * it should append the character to the string buffer and increment the string buffer pointer only if
@@ -256,13 +270,15 @@ ESCAPED_NEWLINE     \\\n
 <STRING_LITERAL>{ANY_CHARACTER} {
 	// String length exceeds the maximum string length.
 	if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
+		// Reset the string buffer pointer.
+		*string_buf_ptr = '\0';
 		cool_yylval.error_msg = "String constant too long";
 		BEGIN(INITIAL);
 		return ERROR;
 	}
 	*string_buf_ptr = yytext[0];
 	// Null terminator found.
-	if (yytext[0] == '\0') {
+	if (yytext[0] == '\0' || yytext[0] == '\\\0') {
 		cool_yylval.error_msg = "String contains null character";
 		BEGIN(INITIAL);
 		return ERROR;
