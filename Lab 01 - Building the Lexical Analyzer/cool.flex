@@ -183,7 +183,7 @@ ESCAPED_NEWLINE     \\\n
 {LE}			                   { return LE; }
 {ASSIGN}		                   { return ASSIGN; }
  /* The character array yytext has the recently matched character. */
-{OTHER}		                       { return (char) yytext[0]; }
+{OTHER}		                       { return yytext[0]; }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
@@ -298,11 +298,25 @@ ESCAPED_NEWLINE     \\\n
 	return ERROR;
 }
 
+ /*
+  *  The integer constants.
+  *  The scanner should accept any sequence of digits.
+  *  Create a new integer entry with the scanned integer and store it in the string table.
+  *  The scanner should return the token INT_CONST.
+  */
+{INTEGER} {
+	/*
+	 * Defined in stringtab.cc:
+	 * IntEntry::IntEntry(char *s, int l, int i) : Entry(s,l,i) { }
+	 */
+	cool_yylval.symbol = new IntEntry(yytext, MAX_STR_CONST, str_count++);
+	return INT_CONST;
+}
 
  /* Do nothing for whitespace characters. */
 <INITIAL>{WHITESPACE} 			  { }
 
- /* Return ERROR token for any other unmatched character. */
+ /* Return ERROR token for any other invalid character. */
 {ANY_CHARACTER}						{ cool_yylval.error_msg = yytext; return ERROR; }
 
 %%
