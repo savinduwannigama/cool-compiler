@@ -124,7 +124,7 @@ OPEN_COMMENT        \(\*
 CLOSE_COMMENT       \*\)
 
 /* Whitespaces. */
-WHITESPACE          [ \t\n\r]
+WHITESPACE          [ \t\n\r]+
 NEWLINE             \n
 
 QUOTE               \"
