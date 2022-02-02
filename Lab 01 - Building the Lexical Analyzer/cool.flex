@@ -299,6 +299,9 @@ ESCAPED_NEWLINE     \\\n
 }
 
 
+ /* Do nothing for whitespace characters. */
+<INITIAL>{WHITESPACE} 			  { }
+
  /* Return ERROR token for any other unmatched character. */
 {ANY_CHARACTER}						{ cool_yylval.error_msg = yytext; return ERROR; }
 
