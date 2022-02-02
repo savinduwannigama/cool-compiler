@@ -79,6 +79,11 @@ class Main {
     cells : CellularAutomaton;
     testString : String <- "String literal\
     with escaped newline";
+    boolTypeTest : Boolean <- false;
+    anotherBool : Boolean <- !boolTypeTest; -- Invalid token !
+    intTypeTest : Int <- 123456789;
+    negative : Int <- -intTypeTest;
+    complement : Int <- ~intTypeTest;
     (*  <EOF>  *)
    
     main() : SELF_TYPE {
