@@ -75,7 +75,7 @@ class CellularAutomaton inherits IO {
     };
 };
 
-class Main {
+cLaSs Main {
     cells : CellularAutomaton;
     testString : String <- "String literal\
     with escaped newline";
@@ -92,7 +92,7 @@ class Main {
                     ");
             cells.print();
             (let countdown : Int <- 20 in
-                while countdown > 0 loop
+                wHIle countdown > 0 loop
                     {
                         cells.evolve();
                         cells.print();
