@@ -166,7 +166,7 @@ ESCAPED_NEWLINE     \\\n
 	if (opened_comments == 0) BEGIN(INITIAL);
 }
  /* Scanner reads the contents of a comment, should not perform any action. */
-<COMMENT>{ANY_CHARACTER}          { }
+<COMMENT>{ANY_CHARACTER}          	{ }
  /* If the scanner finds a comment that remains open when EOF is encountered, return the ERROR token. */
 <COMMENT>{EOF} { 
 	cool_yylval.error_msg = "EOF in comment"; 
@@ -174,41 +174,41 @@ ESCAPED_NEWLINE     \\\n
 	return ERROR; 
 }
  /* Rule to match single line comments. */
-{LINE_COMMENT}                    { }
+{LINE_COMMENT}                    	{ }
 
  /*
   *  The multiple-character operators.
   */
-{DARROW}		                   { return DARROW; }
-{LE}			                   { return LE; }
-{ASSIGN}		                   { return ASSIGN; }
+{DARROW}		                   	{ return DARROW; }
+{LE}			                   	{ return LE; }
+{ASSIGN}		                   	{ return ASSIGN; }
  /* The character array yytext has the recently matched character. */
-{OTHER}		                       { return yytext[0]; }
+{OTHER}		                       	{ return yytext[0]; }
 
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
-{CLASS}		                      { return CLASS; }
-{ELSE}			                  { return ELSE; }
-{FI}			                  { return FI; }
-{IF}			                  { return IF; }
-{IN}			                  { return IN; }
-{INHERITS}		                  { return INHERITS; }
-{LET}                             { return LET; }
-{LOOP}                            { return LOOP; }
-{POOL}                            { return POOL; }
-{THEN}                            { return THEN; }
-{WHILE}                           { return WHILE; }
-{CASE}                            { return CASE; }
-{ESAC}                            { return ESAC; }
-{OF}                              { return OF; }
-{NEW}                             { return NEW; }
-{ISVOID}                          { return ISVOID; }
-{NOT}                             { return NOT; }
+{CLASS}		                      	{ return CLASS; }
+{ELSE}			                  	{ return ELSE; }
+{FI}			                  	{ return FI; }
+{IF}			                  	{ return IF; }
+{IN}			                  	{ return IN; }
+{INHERITS}		                  	{ return INHERITS; }
+{LET}                             	{ return LET; }
+{LOOP}                            	{ return LOOP; }
+{POOL}                            	{ return POOL; }
+{THEN}                            	{ return THEN; }
+{WHILE}                           	{ return WHILE; }
+{CASE}                            	{ return CASE; }
+{ESAC}                            	{ return ESAC; }
+{OF}                              	{ return OF; }
+{NEW}                             	{ return NEW; }
+{ISVOID}                          	{ return ISVOID; }
+{NOT}                             	{ return NOT; }
  /* The semantic values of the boolean constants are set to true or false. */
-{TRUE}                            { cool_yylval.boolean = true; return BOOL_CONST; }
-{FALSE}                           { cool_yylval.boolean = false; return BOOL_CONST; }
+{TRUE}                            	{ cool_yylval.boolean = true; return BOOL_CONST; }
+{FALSE}                           	{ cool_yylval.boolean = false; return BOOL_CONST; }
 
  /*
   *  String constants (C syntax)
@@ -289,9 +289,9 @@ ESCAPED_NEWLINE     \\\n
 	*string_buf_ptr++ = '\n';
 }
  /*
- * If the scanner encounters an EOF while in the STRING_LITERAL start condition,
- * it should deactivate the STRING_LITERAL start condition and return the ERROR token.
- */
+  * If the scanner encounters an EOF while in the STRING_LITERAL start condition,
+  * it should deactivate the STRING_LITERAL start condition and return the ERROR token.
+  */
 <STRING_LITERAL>{EOF} {
 	cool_yylval.error_msg = "EOF in string constant";
 	BEGIN(INITIAL);
@@ -299,7 +299,19 @@ ESCAPED_NEWLINE     \\\n
 }
 
  /*
-  *  The integer constants.
+  * Type and Object identifiers.
+  */
+{TYPEID} {
+	cool_yylval.symbol = new IdEntry(yytext, MAX_STR_CONST, str_count++);
+	return TYPEID; 
+}
+{OBJECTID} {
+	cool_yylval.symbol = new IdEntry(yytext, MAX_STR_CONST, str_count++);
+	return OBJECTID;
+}
+
+ /*
+  *  The integer literals.
   *  The scanner should accept any sequence of digits.
   *  Create a new integer entry with the scanned integer and store it in the string table.
   *  The scanner should return the token INT_CONST.
@@ -314,7 +326,7 @@ ESCAPED_NEWLINE     \\\n
 }
 
  /* Do nothing for whitespace characters. */
-<INITIAL>{WHITESPACE} 			  { }
+<INITIAL>{WHITESPACE} 			  	{ }
 
  /* Return ERROR token for any other invalid character. */
 {ANY_CHARACTER}						{ cool_yylval.error_msg = yytext; return ERROR; }
