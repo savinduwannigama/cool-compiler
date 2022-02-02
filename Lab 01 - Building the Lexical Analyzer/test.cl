@@ -77,12 +77,17 @@ class CellularAutomaton inherits IO {
 
 class Main {
     cells : CellularAutomaton;
+    testString : String <- "String literal\
+    with escaped newline";
+    (*  <EOF>  *)
    
     main() : SELF_TYPE {
         {
-            cells <- (new CellularAutomaton).init("         X         ");
+            cells <- (new CellularAutomaton).init("         X 
+                    ");
             cells.print();
-            (let countdown : Int <- 20 in
+            (* Invalid keyword: lets *)
+            (lets countdown : Int <- 20 in
                 while countdown > 0 loop
                     {
                         cells.evolve();
@@ -90,7 +95,7 @@ class Main {
                         countdown <- countdown - 1;
                     
                 pool
-            );  -- end let countdown
+            );  (* end let countdown
             self;
         }
     };

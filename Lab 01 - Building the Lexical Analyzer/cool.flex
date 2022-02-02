@@ -127,6 +127,7 @@ CLOSE_COMMENT       \*\)
 WHITESPACE          [ \t\n\r]+
 NEWLINE             \n
 
+/* Other Special Characters */
 QUOTE               \"
 ANY_CHARACTER       .
 EOF                 <EOF>
