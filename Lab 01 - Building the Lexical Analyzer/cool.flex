@@ -321,6 +321,10 @@ ESCAPED_CHARS	   	\\[ntbf]
   * Type and Object identifiers.
   */
 {TYPEID} {
+	/*
+	 * Defined in stringtab.cc:
+	 * IdEntry::IdEntry(char *s, int l, int i) : Entry(s,l,i) { }
+	 */
 	cool_yylval.symbol = new IdEntry(yytext, MAX_STR_CONST, str_count++);
 	return TYPEID; 
 }
