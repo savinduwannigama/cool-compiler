@@ -45,6 +45,8 @@ extern YYSTYPE cool_yylval;
 
 // To keep track of the length of the current string literal.
 int opened_comments = 0;
+// To keep track of found string literals, integer literals and identifiers.
+// This count is used as an index to the string (symbol) table to store their semantic values.
 int str_count = 0;
 
 %}
@@ -89,7 +91,7 @@ INTEGER             {DIGIT}+
 
 LOWERCASE           [a-z]
 UPPERCASE           [A-Z]
-IDENTIFIER          [{LOWERCASE}{UPPERCASE}{DIGIT}_]
+IDENTIFIER          ({LOWERCASE}|{UPPERCASE}|{DIGIT}|_)
 
 TYPEID              {UPPERCASE}{IDENTIFIER}*
 OBJECTID            {LOWERCASE}{IDENTIFIER}*
