@@ -233,7 +233,7 @@ BAD_ESCAPE			\\.
   *  If the scanner finds a quote while in the INITIAL start condition, then it should activate the STRING_LITERAL start condition.
   *  Initialize the string buffer to empty, and set the string buffer pointer to the beginning of the string buffer.
   */
-<INITIAL>{QUOTE} { 
+{QUOTE} { 
 	BEGIN(STRING_LITERAL);
 	string_buf[0] = '\0';
 	string_buf_ptr = string_buf;
@@ -388,7 +388,7 @@ BAD_ESCAPE			\\.
 }
 
  /* Do nothing for whitespace characters. */
-<INITIAL>{WHITESPACE} 			  	{ }
+{WHITESPACE} 			  	{ }
 
  /* Return ERROR token for any other invalid character. */
 {ANY_CHARACTER}						{ cool_yylval.error_msg = yytext; return ERROR; }
