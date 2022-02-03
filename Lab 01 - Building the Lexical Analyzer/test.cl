@@ -77,8 +77,8 @@ class CellularAutomaton inherits IO {
 
 cLaSs Main {
     cells : CellularAutomaton;
-    testString : String <- "String literal\
-    with escaped newline";
+    testString : String <- "String literal \
+with escaped newline";
     escapeChars : String <- "String literal with \escaped \c\h\a\r\s";
     eofStr : String <- "String literal with <EOF>";
     errorString : String <- "String literal <EOF>

@@ -133,7 +133,10 @@ NEWLINE             \n
 QUOTE               \"
 ANY_CHARACTER       .
 EOF                 <EOF>
-/* An escaped newline is not a newline character that a programmer explicitly type, but escapes the following new line. */
+/* 
+ * An escaped newline is not a newline character that a programmer explicitly type, but escapes the following new line. 
+ * We can either ignore these, or we can treat them as a single new line character.
+ */
 ESCAPED_NEWLINE	 	\\\n
 NULL_CHARS		  	(\0|\\\0)
 /* Escape characters are the ones that a programmer explicitly type in a string literal. */
@@ -295,13 +298,9 @@ BAD_ESCAPE			\\.
 	}
 	/*
 	* When the scanner finds an escaped newline while in the STRING_LITERAL start condition,
-	* it should increment the current line number.
+	* it should only increment the current line number (we ignore the escaped newlines).
 	*/
-	{ESCAPED_NEWLINE} {
-		// Increment the current line number.
-		curr_lineno++;
-		*string_buf_ptr++ = '\n';
-	}
+	{ESCAPED_NEWLINE} { curr_lineno++; }
 	/*
 	 * When the scanner encounters any other escape characters while in the STRING_LITERAL start condition,
 	 * it should append the character (excluding the escape i.e. yytext[1]) to the string buffer and increment
