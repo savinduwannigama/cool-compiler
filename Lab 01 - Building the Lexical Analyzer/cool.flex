@@ -5,7 +5,7 @@
 /*
  *  Stuff enclosed in %{ %} in the first section is copied verbatim to the
  *  output, so headers and global definitions are placed here to be visible
- * to the code in the file.  Don't remove anything that was here initially
+ * to the code in the file.  Do not remove anything that was here initially
  */
 %{
 #include <cool-parse.h>
@@ -133,8 +133,10 @@ NEWLINE             \n
 QUOTE               \"
 ANY_CHARACTER       .
 EOF                 <EOF>
+/* An escaped newline is not a newline character that a programmer explicitly type, but escapes the following new line. */
 ESCAPED_NEWLINE	 	\\\n
 NULL_CHARS		  	(\0|\\\0)
+/* Escape characters are the ones that a programmer explicitly type in a string literal. */
 ESCAPE_CHARS	   	\\[ntbf]
 BAD_ESCAPE			\\.
 
