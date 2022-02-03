@@ -133,6 +133,7 @@ ANY_CHARACTER       .
 EOF                 <EOF>
 ESCAPED_NEWLINE	 	\\\n
 ESCAPED_CHARS	   	\\[ntbf]
+BAD_ESCAPE			\\[^ntbf]
 
 %%
 
@@ -161,21 +162,23 @@ ESCAPED_CHARS	   	\\[ntbf]
 	cool_yylval.error_msg = "Unmatched *)"; 
 	return ERROR; 
 }
- /* If the scanner found a closing comment token while in the COMMENT start condition, 
-  * then the found token has a matching opening comment token. Decrement the number of opened comments
-  * if it is non-zero. If the number of opened comments is zero, then activate the INITIAL start condition.
-  */
-<COMMENT>{CLOSE_COMMENT} { 
-	if (opened_comments > 0) opened_comments--;
-	if (opened_comments == 0) BEGIN(INITIAL);
-}
- /* Scanner reads the contents of a comment, should not perform any action. */
-<COMMENT>{ANY_CHARACTER}          	{ }
- /* If the scanner finds a comment that remains open when EOF is encountered, return the ERROR token. */
-<COMMENT>{EOF} { 
-	cool_yylval.error_msg = "EOF in comment"; 
-	BEGIN(INITIAL); 
-	return ERROR; 
+<COMMENT>{
+	/* If the scanner found a closing comment token while in the COMMENT start condition, 
+	* then the found token has a matching opening comment token. Decrement the number of opened comments
+	* if it is non-zero. If the number of opened comments is zero, then activate the INITIAL start condition.
+	*/
+	{CLOSE_COMMENT} { 
+		if (opened_comments > 0) opened_comments--;
+		if (opened_comments == 0) BEGIN(INITIAL);
+	}
+	/* Scanner reads the contents of a comment, should not perform any action. */
+	{ANY_CHARACTER}          	{ }
+	/* If the scanner finds a comment that remains open when EOF is encountered, return the ERROR token. */
+	{EOF} { 
+		cool_yylval.error_msg = "EOF in comment"; 
+		BEGIN(INITIAL); 
+		return ERROR; 
+	}
 }
  /* Rule to match single line comments. */
 {LINE_COMMENT}                    	{ }
@@ -227,94 +230,96 @@ ESCAPED_CHARS	   	\\[ntbf]
 	string_buf[0] = '\0';
 	string_buf_ptr = string_buf;
 }
- /* 
- * If the scanner finds a quote while in the STRING_LITERAL start condition, then it should deactivate the STRING_LITERAL start condition. 
- * (The scanner is at the end of a string literal.)
- * Create a new string entry with the scanned string literal and store it in the string table.
- * Return the token STR_CONST.
- */
-<STRING_LITERAL>{QUOTE} {
-	*string_buf_ptr = '\0';
+<STRING_LITERAL>{
+	/* 
+	* If the scanner finds a quote while in the STRING_LITERAL start condition, then it should deactivate the STRING_LITERAL start condition. 
+	* (The scanner is at the end of a string literal.)
+	* Create a new string entry with the scanned string literal and store it in the string table.
+	* Return the token STR_CONST.
+	*/
+	{QUOTE} {
+		*string_buf_ptr = '\0';
+		/*
+		* Defined in stringtab.cc:
+		* StringEntry::StringEntry(char *s, int l, int i) : Entry(s,l,i) { }
+		*/
+		cool_yylval.symbol = new StringEntry(string_buf, string_buf_ptr - string_buf, str_count++);
+		BEGIN(INITIAL);
+		return STR_CONST;
+	}
+	/* Handle escape sequences */
+	{ESCAPED_CHARS} {
+		if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
+			// Reset the string buffer pointer.
+			*string_buf_ptr = '\0';
+			cool_yylval.error_msg = "String constant too long";
+			BEGIN(INITIAL);
+			return ERROR;
+		}
+		switch (yytext[1]) {
+			case 'n': *string_buf_ptr++ = '\n'; break;
+			case 't': *string_buf_ptr++ = '\t'; break;
+			case 'b': *string_buf_ptr++ = '\b'; break;
+			case 'f': *string_buf_ptr++ = '\f'; break;
+		}
+	}
 	/*
-	 * Defined in stringtab.cc:
-	 * StringEntry::StringEntry(char *s, int l, int i) : Entry(s,l,i) { }
-	 */
-	cool_yylval.symbol = new StringEntry(string_buf, string_buf_ptr - string_buf, str_count++);
-	BEGIN(INITIAL);
-	return STR_CONST;
-}
- /* ... Handle escape sequences ... */
-<STRING_LITERAL>{ESCAPED_CHARS} {
-	if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
+	* When the scanner reads any other character while in the STRING_LITERAL start condition,
+	* it should append the character to the string buffer and increment the string buffer pointer only if
+	* the string length is less than the maximum string length and the recently scanned character is not a null
+	* terminator.
+	* 
+	* Return ERROR token appropriately.
+	*/
+	{ANY_CHARACTER} {
+		// String length exceeds the maximum string length.
+		if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
+			// Reset the string buffer pointer.
+			*string_buf_ptr = '\0';
+			cool_yylval.error_msg = "String constant too long";
+			BEGIN(INITIAL);
+			return ERROR;
+		}
+		*string_buf_ptr = yytext[0];
+		// Null terminator found.
+		if (yytext[0] == '\0' || yytext[0] == '\\\0') {
+			cool_yylval.error_msg = "String contains null character";
+			BEGIN(INITIAL);
+			return ERROR;
+		}
+		string_buf_ptr++;
+	}
+	/*
+	* When the scanner finds an unescaped newline while in the STRING_LITERAL start condition,
+	* it should deactivate the STRING_LITERAL start condition and return the ERROR token.
+	*/
+	{NEWLINE} {
+		// Increment the current line number.
+		curr_lineno++;
+		BEGIN(INITIAL);
+		cool_yylval.error_msg = "Unterminated string constant";
 		// Reset the string buffer pointer.
 		*string_buf_ptr = '\0';
-		cool_yylval.error_msg = "String constant too long";
+		return ERROR;
+	}
+	/*
+	* When the scanner finds an unescaped newline while in the STRING_LITERAL start condition,
+	* it should increment the current line number.
+	*/
+	{ESCAPED_NEWLINE} {
+		// Increment the current line number.
+		curr_lineno++;
+		*string_buf_ptr++ = '\n';
+	}
+	/*
+	* If the scanner encounters an EOF while in the STRING_LITERAL start condition,
+	* it should deactivate the STRING_LITERAL start condition and return the ERROR token.
+	*/
+	{EOF} {
+		cool_yylval.error_msg = "EOF in string constant";
 		BEGIN(INITIAL);
 		return ERROR;
 	}
-	switch (yytext[1]) {
-		case 'n': *string_buf_ptr++ = '\n'; break;
-		case 't': *string_buf_ptr++ = '\t'; break;
-		case 'b': *string_buf_ptr++ = '\b'; break;
-		case 'f': *string_buf_ptr++ = '\f'; break;
-	}
-}
- /*
-  * When the scanner reads any other character while in the STRING_LITERAL start condition,
-  * it should append the character to the string buffer and increment the string buffer pointer only if
-  * the string length is less than the maximum string length and the recently scanned character is not a null
-  * terminator.
-  * 
-  * Return ERROR token appropriately.
-  */
-<STRING_LITERAL>{ANY_CHARACTER} {
-	// String length exceeds the maximum string length.
-	if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
-		// Reset the string buffer pointer.
-		*string_buf_ptr = '\0';
-		cool_yylval.error_msg = "String constant too long";
-		BEGIN(INITIAL);
-		return ERROR;
-	}
-	*string_buf_ptr = yytext[0];
-	// Null terminator found.
-	if (yytext[0] == '\0' || yytext[0] == '\\\0') {
-		cool_yylval.error_msg = "String contains null character";
-		BEGIN(INITIAL);
-		return ERROR;
-	}
-	string_buf_ptr++;
-}
- /*
-  * When the scanner finds an unescaped newline while in the STRING_LITERAL start condition,
-  * it should deactivate the STRING_LITERAL start condition and return the ERROR token.
-  */
-<STRING_LITERAL>{NEWLINE} {
-	// Increment the current line number.
-	curr_lineno++;
-	BEGIN(INITIAL);
-	cool_yylval.error_msg = "Unterminated string constant";
-	// Reset the string buffer pointer.
-	*string_buf_ptr = '\0';
-	return ERROR;
-}
- /*
-  * When the scanner finds an unescaped newline while in the STRING_LITERAL start condition,
-  * it should increment the current line number.
-  */
-<STRING_LITERAL>{ESCAPED_NEWLINE} {
-	// Increment the current line number.
-	curr_lineno++;
-	*string_buf_ptr++ = '\n';
-}
- /*
-  * If the scanner encounters an EOF while in the STRING_LITERAL start condition,
-  * it should deactivate the STRING_LITERAL start condition and return the ERROR token.
-  */
-<STRING_LITERAL>{EOF} {
-	cool_yylval.error_msg = "EOF in string constant";
-	BEGIN(INITIAL);
-	return ERROR;
 }
 
  /*
