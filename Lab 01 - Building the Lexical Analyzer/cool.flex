@@ -76,6 +76,7 @@ int str_count = 0;
  // Exclusive start condition for string literals.
 %x STRING_LITERAL
  // Exclusive start condition for erroneous string literals.
+ // This is used to decide whether to resume scanning or not, after encountering an erroneous string literal.
 %x ERROR_STRING_LITERAL
 
 /* Some of the declaration names used here are same as the ones in cool-parse.h */
@@ -241,6 +242,7 @@ BAD_ESCAPE			\\.
 	 * Return the token STR_CONST.
 	 */
 	{QUOTE} {
+		// Add the null character to the end of the string buffer.
 		*string_buf_ptr = '\0';
 		/*
 		 * Defined in stringtab.cc:
@@ -253,10 +255,12 @@ BAD_ESCAPE			\\.
 	/*
 	 * If the scanner finds a null character while in the STRING_LITERAL start condition, 
 	 * then it should deactivate the STRING_LITERAL start condition and return the ERROR token.
+	 * The scanner should resume after the end of the string literal.
+	 * (The end of the string literal is either after the closing quote or the end beginning of the next
+	 * line if an unescaped newline occurs.)
 	 */
 	{NULL_CHARS} {
 		cool_yylval.error_msg = "String contains null character";
-		// Reset the string buffer pointer
 		*string_buf_ptr = '\0';
 		BEGIN(ERROR_STRING_LITERAL);
 		return ERROR;
@@ -264,21 +268,19 @@ BAD_ESCAPE			\\.
 	/*
 	 * When the scanner finds an unescaped newline while in the STRING_LITERAL start condition,
 	 * it should deactivate the STRING_LITERAL start condition and return the ERROR token.
+	 * The scanner should resume lexing at the beginning of the next line.
+	 * (we assume the programmer simply forgot the close-quote)
 	 */
 	{NEWLINE} {
 		// Increment the current line number.
 		curr_lineno++;
 		cool_yylval.error_msg = "Unterminated string constant";
-		// Reset the string buffer pointer.
-		*string_buf_ptr = '\0';
-		BEGIN(INITIAL);
+		BEGIN(ERROR_STRING_LITERAL);
 		return ERROR;
 	}
 	/* Handle escape sequences */
 	{ESCAPE_CHARS} {
 		if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
-			// Reset the string buffer pointer.
-			*string_buf_ptr = '\0';
 			cool_yylval.error_msg = "String constant too long";
 			BEGIN(ERROR_STRING_LITERAL);
 			return ERROR;
@@ -295,7 +297,7 @@ BAD_ESCAPE			\\.
 	 * When the scanner finds an escaped newline while in the STRING_LITERAL start condition,
 	 * it should only increment the current line number (we ignore the escaped newlines).
 	 */
-	{ESCAPED_NEWLINE} { curr_lineno++; }
+	{ESCAPED_NEWLINE} 				{ curr_lineno++; }
 	/*
 	 * When the scanner encounters any other escape characters while in the STRING_LITERAL start condition,
 	 * it should append the character (excluding the escape i.e. yytext[1]) to the string buffer and increment
@@ -304,8 +306,6 @@ BAD_ESCAPE			\\.
 	{BAD_ESCAPE} {
 		// String length exceeds the maximum string length.
 		if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
-			// Reset the string buffer pointer.
-			*string_buf_ptr = '\0';
 			cool_yylval.error_msg = "String constant too long";
 			BEGIN(ERROR_STRING_LITERAL);
 			return ERROR;
@@ -331,8 +331,6 @@ BAD_ESCAPE			\\.
 	{ANY_CHARACTER} {
 		// String length exceeds the maximum string length.
 		if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
-			// Reset the string buffer pointer.
-			*string_buf_ptr = '\0';
 			cool_yylval.error_msg = "String constant too long";
 			BEGIN(ERROR_STRING_LITERAL);
 			return ERROR;
@@ -342,9 +340,9 @@ BAD_ESCAPE			\\.
 }
 <ERROR_STRING_LITERAL>{
 	/*
-	 * If the scanner is currently reading an erroneous string literal,
+	 * If the scanner was previously reading an erroneous string literal,
 	 * when it encounters a newline or another quote, it should go back to the INITIAL start condition.
-	 * Otherwise, do nothing.
+	 * (It should resume lexing.)
 	 */
 	{NEWLINE} { BEGIN(INITIAL); }
 	{QUOTE} { BEGIN(INITIAL); }

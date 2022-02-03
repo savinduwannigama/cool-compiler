@@ -77,12 +77,11 @@ class CellularAutomaton inherits IO {
 
 cLaSs Main {
     cells : CellularAutomaton;
-    testString : String <- "String literal \
+    testString : String <- "This is a string literal \
 with escaped newline";
-    escapeChars : String <- "String literal with \escaped \c\h\a\r\s";
-    errorString : String <- "String literal
-        with unescaped newline and\
-        escaped newline";
+    escapeChars : String <- "This is a string literal with \escaped \c\h\a\r\s";
+    errorString : String <- "This is a string literal with an
+        unescaped newline";
     boolTypeTest : Boolean <- false;
     anotherBool : Boolean <- !boolTypeTest; -- Invalid token !
     intTypeTest : Int <- 123456789;
