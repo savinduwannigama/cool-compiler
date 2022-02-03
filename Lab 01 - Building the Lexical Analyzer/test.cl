@@ -79,7 +79,11 @@ cLaSs Main {
     cells : CellularAutomaton;
     testString : String <- "String literal\
     with escaped newline";
-    escapeChars : String <- "String literal with \escaped \c\h\a\r\s \\ \0";
+    escapeChars : String <- "String literal with \escaped \c\h\a\r\s";
+    eofStr : String <- "String literal with <EOF>";
+    errorString : String <- "String literal <EOF>
+        with unescaped newline and\
+        escaped newline";
     boolTypeTest : Boolean <- false;
     anotherBool : Boolean <- !boolTypeTest; -- Invalid token !
     intTypeTest : Int <- 123456789;
