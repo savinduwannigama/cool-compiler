@@ -154,7 +154,7 @@ BAD_ESCAPE			\\.
   *************************************************************************************************************/
 
  /* Increment the current line number when the scanner matches a newline character if it is either in INITIAL or COMMENT start condition. */
-<INITIAL,COMMENT>{NEWLINE}                { curr_lineno++; }
+<INITIAL,COMMENT>{NEWLINE}			{ curr_lineno++; }
 
  /* 
   * Nested Comments.
@@ -162,7 +162,7 @@ BAD_ESCAPE			\\.
   * Increment the number of opened comments when an opening comment token is found if the scanner is either in INITIAL or COMMENT start condition.
   * Then, activate the COMMENT start condition. 
   */
-<INITIAL,COMMENT>{OPEN_COMMENT}  { opened_comments++; BEGIN(COMMENT); }
+<INITIAL,COMMENT>{OPEN_COMMENT}  	{ opened_comments++; BEGIN(COMMENT); }
  /* If the scanner found a closing comment token while in the intial start condition, 
   * then the found token doesn't have a matching opening comment token.
   */
@@ -180,7 +180,7 @@ BAD_ESCAPE			\\.
 		if (opened_comments == 0) BEGIN(INITIAL);
 	}
 	/* Scanner reads the contents of a comment, should not perform any action. */
-	{ANY_CHARACTER}          	{ }
+	{ANY_CHARACTER}          		{ }
 	/* If the scanner finds a comment that remains open when EOF is encountered, return the ERROR token. */
 	{EOF} { 
 		cool_yylval.error_msg = "EOF in comment"; 
@@ -388,7 +388,7 @@ BAD_ESCAPE			\\.
 }
 
  /* Do nothing for whitespace characters. */
-{WHITESPACE} 			  	{ }
+{WHITESPACE} 			  			{ }
 
  /* Return ERROR token for any other invalid character. */
 {ANY_CHARACTER}						{ cool_yylval.error_msg = yytext; return ERROR; }
