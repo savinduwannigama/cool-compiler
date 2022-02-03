@@ -80,8 +80,7 @@ cLaSs Main {
     testString : String <- "String literal \
 with escaped newline";
     escapeChars : String <- "String literal with \escaped \c\h\a\r\s";
-    eofStr : String <- "String literal with <EOF>";
-    errorString : String <- "String literal <EOF>
+    errorString : String <- "String literal
         with unescaped newline and\
         escaped newline";
     boolTypeTest : Boolean <- false;
@@ -89,8 +88,7 @@ with escaped newline";
     intTypeTest : Int <- 123456789;
     negative : Int <- -intTypeTest;
     complement : Int <- ~intTypeTest;
-    (*  <EOF>  *)
-   
+
     main() : SELF_TYPE {
         {
             cells <- (new CellularAutomaton).init("         X 
