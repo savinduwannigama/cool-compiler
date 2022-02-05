@@ -275,7 +275,7 @@ BAD_ESCAPE			\\.
 		// Increment the current line number.
 		curr_lineno++;
 		cool_yylval.error_msg = "Unterminated string constant";
-		BEGIN(ERROR_STRING_LITERAL);
+		BEGIN(INITIAL);
 		return ERROR;
 	}
 	/* Handle escape sequences */
