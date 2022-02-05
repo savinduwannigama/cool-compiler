@@ -78,7 +78,7 @@ class CellularAutomaton inherits IO {
 cLaSs Main {
     cells : CellularAutomaton;
     testString : String <- "This is a string literal \
-with escaped newline\t\n    \b\f";
+with escaped newline\t\n\b\f";
     escapeChars : String <- "This is a string literal with \escaped \c\h\a\r\s";
     errorString : String <- "This is a string literal with an
         unescaped newline";
@@ -90,7 +90,7 @@ with escaped newline\t\n    \b\f";
 
     main() : SELF_TYPE {
         {
-            cells <- (new CellularAutomaton).init("         X         ");
+            cells <- (new CellularAutomaton).init("  		X		  ");
             cells.print();
             (let countdown : Int <- 20 in
                 wHIle countdown > 0 loop

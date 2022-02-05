@@ -286,7 +286,6 @@ BAD_ESCAPE			\\.
 			return ERROR;
 		}
 		switch (yytext[1]) {
-			case '\\': *string_buf_ptr++ = '\\'; break;
 			case 'n': *string_buf_ptr++ = '\n'; break;
 			case 't': *string_buf_ptr++ = '\t'; break;
 			case 'b': *string_buf_ptr++ = '\b'; break;
