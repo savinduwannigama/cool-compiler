@@ -106,3 +106,22 @@ Instructions
 Write-up for PA2
 ----------------
 
+Design decisions:
+
+	The cool.flex file is used to generate a cool-lex.cc file which implements a finite automaton for a lexical analyser.
+
+	The lexer is designed as a 4 state finite automaton.
+
+	3 exclusive starting states are specified (in addition to the defaut INITIAL state) in the cool.flex file.
+
+		1. COMMENT
+			Used to keep track of the beginnings and endings of comments, and to specify what to do if certains patterns are matched while inside a comment.
+
+		2. STRING_LITERAL
+			Used to keep track of the beginnings and endings of string literals, and to specify what to do if certains patterns are matched while inside a string literal.
+
+		3. ERROR_STRING_LITERAL
+			Will go into this state if an erroneous character/pattern is matched inside a string literal. 
+
+			Will remain inside this state until the lexer encounters a newline or another quote, and  will go back to the INITIAL start state.
+
