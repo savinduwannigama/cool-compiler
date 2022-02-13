@@ -123,8 +123,9 @@ Write-up for PA2
 		3. ERROR_STRING_LITERAL
 			- Will go into this state if an erroneous character/pattern is matched inside a string literal. 
 
-	> (A state diagram for the finite automaton is included inside [cool root]/assignments/PA2/)		
-
+	> Following is the Finite Automaton diagram for the lexical analyzer:
+	
+![](./cool_lexer_finite_automaton.png)
 
 ## Explanation of the code:
 
