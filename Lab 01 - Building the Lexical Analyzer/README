@@ -165,7 +165,7 @@ Write-up for PA2
 			> If the scanner encounters an EOF while in the STRING_LITERAL start condition. (319)
 			
 
-## Test cases.
+## Test cases:
 
 	We have written a test case (custom_test.cl) to cover all the possible 
 		- errors
@@ -174,5 +174,5 @@ Write-up for PA2
 		- statements
 		- whitespaces
 		- comments
-		- ets.
+		- etc.
 			 according to the cool manual. The test.cl file is included in the root directory
