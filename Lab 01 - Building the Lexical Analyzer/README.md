@@ -164,4 +164,16 @@ Write-up for PA2
 			> When the scanner finds an unescaped newline while in the STRING_LITERAL start condition. (277)
 			> String length exceeds the maximum string length. (284, 308, 334)
 			> If the scanner encounters an EOF while in the STRING_LITERAL start condition. (319)
-			> 
+
+
+## Test cases:
+
+	We have written a test case (life.cl) to cover all the possible 
+		- errors
+		- syntaxes
+		- keywords
+		- statements
+		- whitespaces
+		- comments
+		- etc.
+			 according to the cool manual. The life.cl file is included in the root directory
