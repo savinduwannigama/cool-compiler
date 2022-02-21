@@ -168,7 +168,7 @@ Write-up for PA2
 
 ## Test cases:
 
-	We have written a test case (custom_test.cl) to cover all the possible 
+	We have written a test case (life.cl) to cover all the possible 
 		- errors
 		- syntaxes
 		- keywords
@@ -176,4 +176,4 @@ Write-up for PA2
 		- whitespaces
 		- comments
 		- etc.
-			 according to the cool manual. The test.cl file is included in the root directory
+			 according to the cool manual. The life.cl file is included in the root directory
