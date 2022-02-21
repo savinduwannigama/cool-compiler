@@ -106,3 +106,74 @@ Instructions
 Write-up for PA2
 ----------------
 
+## Design decisions:
+
+	- The cool.flex file is used to generate a cool-lex.cc file which - implements a finite automaton for a lexical analyser.
+
+	- The lexer is designed as a 4 state finite automaton.
+
+	- 3 exclusive starting states are specified (in addition to the defaut INITIAL state) in the cool.flex file.
+
+		1. COMMENT
+			- Used to keep track of the beginnings and endings of comments, and to specify what to do if certains patterns are matched while inside a comment.
+
+		2. STRING_LITERAL
+			- Used to keep track of the beginnings and endings of string literals, and to specify what to do if certains patterns are matched while inside a string literal.
+
+		3. ERROR_STRING_LITERAL
+			- Will go into this state if an erroneous character/pattern is matched inside a string literal. 
+
+	> Following is the Finite Automaton diagram for the lexical analyzer:
+	
+![](./cool_lexer_finite_automaton.png)
+
+## Explanation of the code:
+
+	The cool.flex file consists of 4 main parts.
+
+	1. Declarations
+		- Required header files are included.
+		- Required labels are defined.
+		- Required global variables are declared.
+			char string_buf --> temporarily store string literals
+			char *string_buf_ptr --> points to a character in string_buf
+			extern int curr_lineno  --> tracks the current line number that the lexer is scanning.
+			extern int verbose_flag --> ????
+			extern YYSTYPE cool_yylval --> Union type variable used to add elements to the string/integer/identifier table.
+	
+	2. Definitions.
+		- The 3 additional exclusive states are defined here.
+		- The following main patterns which are intended to be matched by the lexer are defined here using regular expressions.
+			> Operators
+			> Keywords
+			> Boolean constants
+			> Comments
+			> Whitespaces
+			> Other special characters
+
+	3. Rules.
+		- The rules section of the flex input contains a series of rules of the form:
+			> [pattern]   [action]
+		- Following are the patterns that will make the finite automaton go into a different states upon matching.
+			> OPEN_COMMENT  -->  Will go into the COMMENT starting state
+			> CLOSE_COMMENT (while insid)
+		- Following are instances defined in the rules section which would return an ERROR status code.
+			> CLOSE_COMMENT while inside the INITIAL state. (169)
+			> If the scanner finds a comment that remains open when EOF is encountered (180)
+			> If the scanner finds a null character while in the STRING_LITERAL start condition. (263)
+			> When the scanner finds an unescaped newline while in the STRING_LITERAL start condition. (277)
+			> String length exceeds the maximum string length. (284, 308, 334)
+			> If the scanner encounters an EOF while in the STRING_LITERAL start condition. (319)
+
+
+## Test cases:
+
+	We have written a test case (life.cl) to cover all the possible 
+		- errors
+		- syntaxes
+		- keywords
+		- statements
+		- whitespaces
+		- comments
+		- etc.
+			 according to the cool manual. The life.cl file is included in the root directory
