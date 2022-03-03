@@ -142,9 +142,22 @@ value of each non terminal. (See section 3.6 in the bison
 documentation for details). */
 
 /* Declare types for the grammar's non-terminals. */
+// Some of the declared type identifiers are named as same as they appear in the COOL manual.
 %type <program> program
 %type <classes> class_list
 %type <class_> class
+%type <features> feature_list
+%type <feature> feature
+%type <formals> formal_list
+%type <formal> formal
+/*
+ * expr_list_comma_sep represents a list of expressions separated by commas (used in method dispatches).
+ * expr_list_semicolon_sep represents a list of expressions separated by semicolons (used in expression blocks).
+ */
+%type <expressions> expr_list_comma_sep expr_list_semicolon_sep
+%type <expression> expr expr_let_body
+%type <case_> case_
+%type <cases> case_branch_list
 
 /* You will want to change the following line. */
 %type <features> dummy_feature_list
