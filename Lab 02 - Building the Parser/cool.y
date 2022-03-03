@@ -159,11 +159,18 @@ documentation for details). */
 %type <case_> case_
 %type <cases> case_branch_list
 
-/* You will want to change the following line. */
-%type <features> dummy_feature_list
 
 /* Precedence declarations go here. */
-
+// All the binary operators are left-associative except for the assignment operator.
+// The three comparison operators do not associate.
+%right ASSIGN
+%left NOT
+%nonassoc LE '<' '='
+%left '+' '-'
+%left '*' '/'
+%precedence ISVOID
+%precedence '~'
+%precedence '.'
 
 /***************** END OF BISON DECLARATIONS SECTION *******************/
 
@@ -189,17 +196,15 @@ parse_results = $$; }
 ;
 
 /* If no parent is specified, the class inherits from the Object class. */
-class	: CLASS TYPEID '{' dummy_feature_list '}' ';'
+class	: CLASS TYPEID '{' feature_list '}' ';'
 { $$ = class_($2,idtable.add_string("Object"),$4,
 stringtable.add_string(curr_filename)); }
-| CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
+| CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
 { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
 ;
 
-/* Feature list may be empty, but no empty features in list. */
-dummy_feature_list:		/* empty */
+feature_list:		/* empty */
 {  $$ = nil_Features(); }
-
 
 %%
 /********************* END OF GRAMMAR RULES SECTION *********************/
