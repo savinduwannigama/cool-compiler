@@ -177,7 +177,9 @@ documentation for details). */
 
 /* GRAMMAR RULES SECTION
  ***********************
- * Grammar rules define how to construct each nonterminal symbol from its parts.
+ * Grammar rules define how to construct each nonterminal symbol from its parts (productions).
+ * 
+ * Most of the productions implemented below follow the Figure 1 of the COOL manual (page 17).
  */
 %%
 /* 
@@ -185,17 +187,21 @@ Save the root of the abstract syntax tree in a global variable.
 */
 program	: class_list 
 		{ 
-			@$ = @1; ast_root = program($1); 
+			@$ = @1;
+			ast_root = program($1); 
 		}
 ;
 
-class_list : class /* single class */
+/* There can be a single class or several classes in the class list of the program. */
+class_list : class ';'				/* Single class */
 		{
+			SET_NODELOC(@1);
 			$$ = single_Classes($1);
 			parse_results = $$; 
 		}
-		| class_list class /* several classes */
+		| class_list class ';'		/* Several classes */
 		{
+			SET_NODELOC(@2);
 			$$ = append_Classes($1, single_Classes($2)); 
 			parse_results = $$; 
 		}
@@ -204,16 +210,75 @@ class_list : class /* single class */
 /* If no parent is specified, the class inherits from the Object class. */
 class : CLASS TYPEID '{' feature_list '}' ';'
 		{
+			SET_NODELOC(@1);
+			// Constructor signature: class_(name, parent, fratures, filename)
 			$$ = class_($2, idtable.add_string("Object"), $4, stringtable.add_string(curr_filename)); 
 		}
 		| CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
 		{
+			SET_NODELOC(@1);
 			$$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
 		}
 ;
 
-feature_list :		/* empty */
-		{  $$ = nil_Features(); }
+/* Feature list may be empty (i.e. the optional feature list), but no empty features in list. */
+feature_list : %empty
+		{
+			$$ = nil_Features();
+		}
+		| feature ';'				/* Single feature */
+		{
+			SET_NODELOC(@1);
+			$$ = single_Features($1);
+		}
+		| feature_list feature ';'	/* Several features */
+		{
+			SET_NODELOC(@2);
+			$$ = append_Features($1, single_Features($2));
+		}
+;
+
+feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'		/* A feature can be a method */
+		{
+			SET_NODELOC(@1);
+			$$ = method($1, $3, $6, $8);
+		}
+		| OBJECTID ':' TYPEID										/* A feature can be an attribute declaration without initialization */
+		{
+			SET_NODELOC(@1);
+			$$ = attr($1, $3, no_expr());
+		}
+		| OBJECTID ':' TYPEID ASSIGN expr							/* A feature can be an attribute declaration with initialization */
+		{
+			SET_NODELOC(@1);
+			$$ = attr($1, $3, $5);
+		}
+;
+
+formal_list : %empty				/* Empty formal list */
+		{
+			$$ = nil_Formals();
+		}
+		| formal					/* Single formal */
+		{
+			SET_NODELOC(@1);
+			$$ = single_Formals($1);
+		}
+		| formal_list ',' formal	/* Several formals */
+		{
+			SET_NODELOC(@2);
+			$$ = append_Formals($1, single_Formals($2));
+		}
+;
+
+formal : OBJECTID ':' TYPEID
+		{
+			SET_NODELOC(@1);
+			$$ = formal($1, $3);
+		}
+;
+
+
 
 %%
 /********************* END OF GRAMMAR RULES SECTION *********************/
