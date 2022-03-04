@@ -2,12 +2,12 @@ Nonterminals useless in grammar
 
    formal_list
    formal
-   expr
-   case_
-   case_branch_list
-   expr_let_body
    expr_list_comma_sep
    expr_list_semicolon_sep
+   expr
+   expr_let_body
+   case_
+   case_branch_list
 
 
 Terminals unused in grammar
@@ -58,7 +58,19 @@ Rules useless in grammar
 
    15 formal: OBJECTID ':' TYPEID
 
-   16 expr: OBJECTID ASSIGN expr
+   16 expr_list_comma_sep: %empty
+   17                    | expr
+   18                    | expr_list_comma_sep ',' expr
+
+   19 expr_list_semicolon_sep: expr ';'
+   20                        | expr_list_semicolon_sep expr ';'
+
+   21 expr: OBJECTID ASSIGN expr
+
+   22 expr_let_body: OBJECTID ':' TYPEID IN expr
+   23              | OBJECTID ':' TYPEID ASSIGN expr IN expr
+   24              | OBJECTID ':' TYPEID ',' expr_let_body
+   25              | OBJECTID ':' TYPEID ASSIGN expr ',' expr_let_body
 
 
 State 10 conflicts: 1 shift/reduce

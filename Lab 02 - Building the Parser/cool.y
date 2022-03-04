@@ -255,7 +255,7 @@ feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'		/* A feature ca
 		}
 ;
 
-formal_list : %empty				/* Empty formal list */
+formal_list : %empty				/* Empty formal list (when it is optional) */
 		{
 			$$ = nil_Formals();
 		}
@@ -278,7 +278,33 @@ formal : OBJECTID ':' TYPEID
 		}
 ;
 
+expr_list_comma_sep : %empty				/* Empty expression list (when it is optional) */
+		{
+			$$ = nil_Expressions();
+		}
+		| expr								/* Single expression */
+		{
+			SET_NODELOC(@1);
+			$$ = single_Expressions($1);
+		}
+		| expr_list_comma_sep ',' expr		/* Several expressions */
+		{
+			SET_NODELOC(@3);
+			$$ = append_Expressions($1, single_Expressions($3));
+		}
+;
 
+expr_list_semicolon_sep : expr ';'			/* Single expression */
+		{
+			SET_NODELOC(@1);
+			$$ = single_Expressions($1);
+		}
+		| expr_list_semicolon_sep expr ';'	/* Several expressions */
+		{
+			SET_NODELOC(@2);
+			$$ = append_Expressions($1, single_Expressions($2));
+		}
+;
 
 // TODO: Implement other productions of expr.
 expr : OBJECTID ASSIGN expr
@@ -287,6 +313,32 @@ expr : OBJECTID ASSIGN expr
 			$$ = assign($1, $3);
 		}
 ;
+
+expr_let_body : OBJECTID ':' TYPEID IN expr					/* Single expression in let body expression list */
+		{
+			SET_NODELOC(@1);
+			// Constructor signature: let(name, type, initialization, expression)
+			$$ = let($1, $3, no_expr(), $5);
+		}
+		| OBJECTID ':' TYPEID ASSIGN expr IN expr 			/* Single expression with assignment in let body expression list */
+		{
+			SET_NODELOC(@1);
+			$$ = let($1, $3, $5, $7);
+		}
+		| OBJECTID ':' TYPEID ',' expr_let_body				/* Several expressions in let body expression list */
+		{
+			SET_NODELOC(@1);
+			$$ = let($1, $3, no_expr(), $5);
+		}
+		| OBJECTID ':' TYPEID ASSIGN expr ',' expr_let_body	/* Several expressions with assignment in let body expression list */
+		{
+			SET_NODELOC(@1);
+			$$ = let($1, $3, $5, $7);
+		}
+;
+
+// TODO: Implement productions of case related non-terminals.
+// ...
 
 %%
 /********************* END OF GRAMMAR RULES SECTION *********************/
