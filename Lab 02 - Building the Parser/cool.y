@@ -266,8 +266,8 @@ formal_list : %empty				/* Empty formal list */
 		}
 		| formal_list ',' formal	/* Several formals */
 		{
-			SET_NODELOC(@2);
-			$$ = append_Formals($1, single_Formals($2));
+			SET_NODELOC(@3);
+			$$ = append_Formals($1, single_Formals($3));
 		}
 ;
 
@@ -279,6 +279,14 @@ formal : OBJECTID ':' TYPEID
 ;
 
 
+
+// TODO: Implement other productions of expr.
+expr : OBJECTID ASSIGN expr
+		{
+			SET_NODELOC(@1);
+			$$ = assign($1, $3);
+		}
+;
 
 %%
 /********************* END OF GRAMMAR RULES SECTION *********************/
