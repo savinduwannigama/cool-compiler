@@ -12,11 +12,11 @@ Your directory should now contain the following files:
  cool-tree.cc		  -> [cool root]/src/PA3/cool-tree.cc
  cool-tree.aps		  -> [cool root]/src/PA3/cool-tree.aps
  dumptype.cc		  -> [cool root]/src/PA3/dumptype.cc
- handle_flags.c           -> [cool root]/src/PA3/handle_flags.cc
+ handle_flags.c       -> [cool root]/src/PA3/handle_flags.cc
  parser-phase.cc	  -> [cool root]/src/PA3/parser-phase.cc
  stringtab.cc		  -> [cool root]/src/PA3/stringtab.cc
  tokens-lex.cc		  -> [cool root]/src/PA3/tokens-lex.cc
- tree.cc		  -> [cool root]/src/PA3/tree.cc
+ tree.cc		  	  -> [cool root]/src/PA3/tree.cc
  utilities.cc		  -> [cool root]/src/PA3/utilities.cc
  *.d			  dependency files
  *.*			  other generated files
@@ -130,3 +130,5 @@ Instructions
 
 Write-up for PA3
 ----------------
+
+This assignment was done thoroughly following the cool-manual, cool-tour as well as the lab sheet. All the design decisions were made as per the cool-manual.
