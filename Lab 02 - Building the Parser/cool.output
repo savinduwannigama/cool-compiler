@@ -175,6 +175,11 @@ case_ (58)
 State 0
 
     0 $accept: . program $end
+    1 program: . class_list
+    2 class_list: . class ';'
+    3           | . class_list class ';'
+    4 class: . CLASS TYPEID '{' feature_list '}'
+    5      | . CLASS TYPEID INHERITS TYPEID '{' feature_list '}'
 
     CLASS  shift, and go to state 1
 
@@ -202,6 +207,8 @@ State 3
 
     1 program: class_list .
     3 class_list: class_list . class ';'
+    4 class: . CLASS TYPEID '{' feature_list '}'
+    5      | . CLASS TYPEID INHERITS TYPEID '{' feature_list '}'
 
     CLASS  shift, and go to state 1
 
@@ -257,6 +264,12 @@ State 9
 State 10
 
     4 class: CLASS TYPEID '{' . feature_list '}'
+    6 feature_list: . %empty
+    7             | . feature ';'
+    8             | . feature_list feature ';'
+    9 feature: . OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'
+   10        | . OBJECTID ':' TYPEID
+   11        | . OBJECTID ':' TYPEID ASSIGN expr
 
     OBJECTID  shift, and go to state 13
 
@@ -295,6 +308,9 @@ State 14
 
     4 class: CLASS TYPEID '{' feature_list . '}'
     8 feature_list: feature_list . feature ';'
+    9 feature: . OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'
+   10        | . OBJECTID ':' TYPEID
+   11        | . OBJECTID ':' TYPEID ASSIGN expr
 
     OBJECTID  shift, and go to state 13
     '}'       shift, and go to state 19
@@ -312,6 +328,12 @@ State 15
 State 16
 
     5 class: CLASS TYPEID INHERITS TYPEID '{' . feature_list '}'
+    6 feature_list: . %empty
+    7             | . feature ';'
+    8             | . feature_list feature ';'
+    9 feature: . OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'
+   10        | . OBJECTID ':' TYPEID
+   11        | . OBJECTID ':' TYPEID ASSIGN expr
 
     OBJECTID  shift, and go to state 13
 
@@ -325,6 +347,10 @@ State 16
 State 17
 
     9 feature: OBJECTID '(' . formal_list ')' ':' TYPEID '{' expr '}'
+   12 formal_list: . %empty
+   13            | . formal
+   14            | . formal_list ',' formal
+   15 formal: . OBJECTID ':' TYPEID
 
     OBJECTID  shift, and go to state 23
 
@@ -367,6 +393,9 @@ State 22
 
     5 class: CLASS TYPEID INHERITS TYPEID '{' feature_list . '}'
     8 feature_list: feature_list . feature ';'
+    9 feature: . OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'
+   10        | . OBJECTID ':' TYPEID
+   11        | . OBJECTID ':' TYPEID ASSIGN expr
 
     OBJECTID  shift, and go to state 13
     '}'       shift, and go to state 28
@@ -438,6 +467,7 @@ State 30
 State 31
 
    14 formal_list: formal_list ',' . formal
+   15 formal: . OBJECTID ':' TYPEID
 
     OBJECTID  shift, and go to state 23
 
@@ -447,6 +477,31 @@ State 31
 State 32
 
    11 feature: OBJECTID ':' TYPEID ASSIGN . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -489,7 +544,32 @@ State 35
 
 State 36
 
-   25 expr: IF . expr THEN expr ELSE expr FI
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   25     | IF . expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -512,6 +592,10 @@ State 36
 State 37
 
    28 expr: LET . expr_let_body
+   46 expr_let_body: . OBJECTID ':' TYPEID IN expr
+   47              | . OBJECTID ':' TYPEID ASSIGN expr IN expr
+   48              | . OBJECTID ':' TYPEID ',' expr_let_body
+   49              | . OBJECTID ':' TYPEID ASSIGN expr ',' expr_let_body
 
     OBJECTID  shift, and go to state 53
 
@@ -520,7 +604,32 @@ State 37
 
 State 38
 
-   26 expr: WHILE . expr LOOP expr POOL
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   26     | WHILE . expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -542,7 +651,32 @@ State 38
 
 State 39
 
-   29 expr: CASE . expr OF case_branch_list ESAC
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   29     | CASE . expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -571,7 +705,32 @@ State 40
 
 State 41
 
-   31 expr: ISVOID . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   31     | ISVOID . expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -626,7 +785,32 @@ State 45
 
 State 46
 
-   40 expr: NOT . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   40     | NOT . expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -648,7 +832,32 @@ State 46
 
 State 47
 
-   36 expr: '~' . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   36     | '~' . expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -670,7 +879,34 @@ State 47
 
 State 48
 
-   27 expr: '{' . expr_list_semicolon_sep '}'
+   19 expr_list_semicolon_sep: . expr ';'
+   20                        | . expr_list_semicolon_sep expr ';'
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   27     | '{' . expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -693,7 +929,32 @@ State 48
 
 State 49
 
-   41 expr: '(' . expr ')'
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   41     | '(' . expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -867,7 +1128,32 @@ State 58
 
 State 59
 
-   21 expr: OBJECTID ASSIGN . expr
+   21 expr: . OBJECTID ASSIGN expr
+   21     | OBJECTID ASSIGN . expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -889,7 +1175,35 @@ State 59
 
 State 60
 
-   24 expr: OBJECTID '(' . expr_list_comma_sep ')'
+   16 expr_list_comma_sep: . %empty
+   17                    | . expr
+   18                    | . expr_list_comma_sep ',' expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   24     | OBJECTID '(' . expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -962,7 +1276,32 @@ State 62
 State 63
 
    20 expr_list_semicolon_sep: expr_list_semicolon_sep . expr ';'
-   27 expr: '{' expr_list_semicolon_sep . '}'
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   27     | '{' expr_list_semicolon_sep . '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1035,7 +1374,32 @@ State 65
 
 State 66
 
-   38 expr: expr LE . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   38     | expr LE . expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1057,7 +1421,32 @@ State 66
 
 State 67
 
-   37 expr: expr '<' . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   37     | expr '<' . expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1079,7 +1468,32 @@ State 67
 
 State 68
 
-   39 expr: expr '=' . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   39     | expr '=' . expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1101,7 +1515,32 @@ State 68
 
 State 69
 
-   32 expr: expr '+' . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   32     | expr '+' . expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1123,7 +1562,32 @@ State 69
 
 State 70
 
-   33 expr: expr '-' . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   33     | expr '-' . expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1145,7 +1609,32 @@ State 70
 
 State 71
 
-   34 expr: expr '*' . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   34     | expr '*' . expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1167,7 +1656,32 @@ State 71
 
 State 72
 
-   35 expr: expr '/' . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   35     | expr '/' . expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1204,6 +1718,31 @@ State 74
 State 75
 
     9 feature: OBJECTID '(' formal_list ')' ':' TYPEID '{' . expr '}'
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1225,7 +1764,32 @@ State 75
 
 State 76
 
-   25 expr: IF expr THEN . expr ELSE expr FI
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   25     | IF expr THEN . expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1257,7 +1821,32 @@ State 77
 
 State 78
 
-   26 expr: WHILE expr LOOP . expr POOL
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   26     | WHILE expr LOOP . expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1280,6 +1869,9 @@ State 78
 State 79
 
    29 expr: CASE expr OF . case_branch_list ESAC
+   50 case_branch_list: . case_ ';'
+   51                 | . case_branch_list case_ ';'
+   52 case_: . OBJECTID ':' TYPEID DARROW expr
 
     OBJECTID  shift, and go to state 100
 
@@ -1675,6 +2267,7 @@ State 101
 
    29 expr: CASE expr OF case_branch_list . ESAC
    51 case_branch_list: case_branch_list . case_ ';'
+   52 case_: . OBJECTID ':' TYPEID DARROW expr
 
     ESAC      shift, and go to state 115
     OBJECTID  shift, and go to state 100
@@ -1699,6 +2292,31 @@ State 103
 State 104
 
    18 expr_list_comma_sep: expr_list_comma_sep ',' . expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1727,7 +2345,35 @@ State 105
 
 State 106
 
-   22 expr: expr '.' OBJECTID '(' . expr_list_comma_sep ')'
+   16 expr_list_comma_sep: . %empty
+   17                    | . expr
+   18                    | . expr_list_comma_sep ',' expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   22     | expr '.' OBJECTID '(' . expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1766,7 +2412,32 @@ State 108
 
 State 109
 
-   25 expr: IF expr THEN expr ELSE . expr FI
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   25     | IF expr THEN expr ELSE . expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -1788,6 +2459,31 @@ State 109
 
 State 110
 
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
    46 expr_let_body: OBJECTID ':' TYPEID IN . expr
 
     IF          shift, and go to state 36
@@ -1810,6 +2506,31 @@ State 110
 
 State 111
 
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
    47 expr_let_body: OBJECTID ':' TYPEID ASSIGN . expr IN expr
    49              | OBJECTID ':' TYPEID ASSIGN . expr ',' expr_let_body
 
@@ -1833,7 +2554,11 @@ State 111
 
 State 112
 
-   48 expr_let_body: OBJECTID ':' TYPEID ',' . expr_let_body
+   46 expr_let_body: . OBJECTID ':' TYPEID IN expr
+   47              | . OBJECTID ':' TYPEID ASSIGN expr IN expr
+   48              | . OBJECTID ':' TYPEID ',' expr_let_body
+   48              | OBJECTID ':' TYPEID ',' . expr_let_body
+   49              | . OBJECTID ':' TYPEID ASSIGN expr ',' expr_let_body
 
     OBJECTID  shift, and go to state 53
 
@@ -2034,7 +2759,35 @@ State 127
 
 State 128
 
-   23 expr: expr '@' TYPEID '.' OBJECTID '(' . expr_list_comma_sep ')'
+   16 expr_list_comma_sep: . %empty
+   17                    | . expr
+   18                    | . expr_list_comma_sep ',' expr
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | expr '@' TYPEID '.' OBJECTID '(' . expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
 
     IF          shift, and go to state 36
     LET         shift, and go to state 37
@@ -2066,6 +2819,31 @@ State 129
 
 State 130
 
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
    47 expr_let_body: OBJECTID ':' TYPEID ASSIGN expr IN . expr
 
     IF          shift, and go to state 36
@@ -2088,7 +2866,11 @@ State 130
 
 State 131
 
-   49 expr_let_body: OBJECTID ':' TYPEID ASSIGN expr ',' . expr_let_body
+   46 expr_let_body: . OBJECTID ':' TYPEID IN expr
+   47              | . OBJECTID ':' TYPEID ASSIGN expr IN expr
+   48              | . OBJECTID ':' TYPEID ',' expr_let_body
+   49              | . OBJECTID ':' TYPEID ASSIGN expr ',' expr_let_body
+   49              | OBJECTID ':' TYPEID ASSIGN expr ',' . expr_let_body
 
     OBJECTID  shift, and go to state 53
 
@@ -2097,6 +2879,31 @@ State 131
 
 State 132
 
+   21 expr: . OBJECTID ASSIGN expr
+   22     | . expr '.' OBJECTID '(' expr_list_comma_sep ')'
+   23     | . expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'
+   24     | . OBJECTID '(' expr_list_comma_sep ')'
+   25     | . IF expr THEN expr ELSE expr FI
+   26     | . WHILE expr LOOP expr POOL
+   27     | . '{' expr_list_semicolon_sep '}'
+   28     | . LET expr_let_body
+   29     | . CASE expr OF case_branch_list ESAC
+   30     | . NEW TYPEID
+   31     | . ISVOID expr
+   32     | . expr '+' expr
+   33     | . expr '-' expr
+   34     | . expr '*' expr
+   35     | . expr '/' expr
+   36     | . '~' expr
+   37     | . expr '<' expr
+   38     | . expr LE expr
+   39     | . expr '=' expr
+   40     | . NOT expr
+   41     | . '(' expr ')'
+   42     | . OBJECTID
+   43     | . INT_CONST
+   44     | . STR_CONST
+   45     | . BOOL_CONST
    52 case_: OBJECTID ':' TYPEID DARROW . expr
 
     IF          shift, and go to state 36
