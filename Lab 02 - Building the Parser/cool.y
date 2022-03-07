@@ -205,6 +205,7 @@ class_list : class ';'												/* Single class */
 			$$ = append_Classes($1, single_Classes($2)); 
 			parse_results = $$; 
 		}
+		| class_list error ';'										/* On error, skip until the next semicolon is read */
 ;
 
 /* If no parent is specified, the class inherits from the Object class. */
@@ -219,6 +220,7 @@ class : CLASS TYPEID '{' feature_list '}'
 			SET_NODELOC(@1);
 			$$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
 		}
+		| error
 ;
 
 /* Feature list may be empty (i.e. the optional feature list), but no empty features in list. */
@@ -236,6 +238,7 @@ feature_list : %empty
 			SET_NODELOC(@2);
 			$$ = append_Features($1, single_Features($2));
 		}
+		| feature_list error ';'									/* On error, skip until the next semicolon is read */
 ;
 
 feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'		/* A feature can be a method */
@@ -253,6 +256,7 @@ feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'		/* A feature ca
 			SET_NODELOC(@1);
 			$$ = attr($1, $3, $5);
 		}
+		| error
 ;
 
 formal_list : %empty												/* Empty formal list (when it is optional) */
@@ -269,6 +273,7 @@ formal_list : %empty												/* Empty formal list (when it is optional) */
 			SET_NODELOC(@3);
 			$$ = append_Formals($1, single_Formals($3));
 		}
+		| formal_list ',' error										/* On error, skip everything after the previously read semicolon */
 ;
 
 formal : OBJECTID ':' TYPEID
@@ -292,6 +297,7 @@ expr_list_comma_sep : %empty										/* Empty expression list (when it is optio
 			SET_NODELOC(@3);
 			$$ = append_Expressions($1, single_Expressions($3));
 		}
+		| expr_list_comma_sep ',' error								/* On error, skip everything after the previously read semicolon */
 ;
 
 expr_list_semicolon_sep : expr ';'									/* Single expression */
@@ -303,6 +309,10 @@ expr_list_semicolon_sep : expr ';'									/* Single expression */
 		{
 			SET_NODELOC(@2);
 			$$ = append_Expressions($1, single_Expressions($2));
+		}
+		| error ';'													/* On error, skip until the next semicolon is read */
+		{
+			$$ = nil_Expressions();
 		}
 ;
 
@@ -460,6 +470,7 @@ expr_let_body : OBJECTID ':' TYPEID IN expr							/* Single expression in let bo
 			SET_NODELOC(@1);
 			$$ = let($1, $3, $5, $7);
 		}
+		| error ',' expr_let_body									/* On error, skip until next comma and continue */
 ;
 
 case_branch_list : case_ ';'										/* Single case branch */
@@ -472,6 +483,7 @@ case_branch_list : case_ ';'										/* Single case branch */
 			SET_NODELOC(@1);
 			$$ = append_Cases($1, single_Cases($2));
 		}
+		| case_branch_list error ';'								/* On error, skip until next semicolon */
 ;
 
 case_ : OBJECTID ':' TYPEID DARROW expr								/* Case branch */

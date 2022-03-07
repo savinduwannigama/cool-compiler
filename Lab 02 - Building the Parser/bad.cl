@@ -23,7 +23,18 @@ Class C inherits a {
 Class D inherts A {
 };
 
+(* error:  super class is missing *)
+Class F inherits {
+};
+
+Class G inherits A {
+    attr1 : int;
+    
+    method1() {
+        attr1 <- 1
+    };
+};
+
 (* error:  closing brace is missing *)
 Class E inherits A {
 ;
-
