@@ -193,13 +193,13 @@ program	: class_list
 ;
 
 /* There can be a single class or several classes in the class list of the program. */
-class_list : class ';'				/* Single class */
+class_list : class ';'												/* Single class */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Classes($1);
 			parse_results = $$; 
 		}
-		| class_list class ';'		/* Several classes */
+		| class_list class ';'										/* Several classes */
 		{
 			SET_NODELOC(@2);
 			$$ = append_Classes($1, single_Classes($2)); 
@@ -226,12 +226,12 @@ feature_list : %empty
 		{
 			$$ = nil_Features();
 		}
-		| feature ';'				/* Single feature */
+		| feature ';'												/* Single feature */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Features($1);
 		}
-		| feature_list feature ';'	/* Several features */
+		| feature_list feature ';'									/* Several features */
 		{
 			SET_NODELOC(@2);
 			$$ = append_Features($1, single_Features($2));
@@ -255,16 +255,16 @@ feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'		/* A feature ca
 		}
 ;
 
-formal_list : %empty				/* Empty formal list (when it is optional) */
+formal_list : %empty												/* Empty formal list (when it is optional) */
 		{
 			$$ = nil_Formals();
 		}
-		| formal					/* Single formal */
+		| formal													/* Single formal */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Formals($1);
 		}
-		| formal_list ',' formal	/* Several formals */
+		| formal_list ',' formal									/* Several formals */
 		{
 			SET_NODELOC(@3);
 			$$ = append_Formals($1, single_Formals($3));
@@ -278,67 +278,209 @@ formal : OBJECTID ':' TYPEID
 		}
 ;
 
-expr_list_comma_sep : %empty				/* Empty expression list (when it is optional) */
+expr_list_comma_sep : %empty										/* Empty expression list (when it is optional) */
 		{
 			$$ = nil_Expressions();
 		}
-		| expr								/* Single expression */
+		| expr														/* Single expression */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Expressions($1);
 		}
-		| expr_list_comma_sep ',' expr		/* Several expressions */
+		| expr_list_comma_sep ',' expr								/* Several expressions */
 		{
 			SET_NODELOC(@3);
 			$$ = append_Expressions($1, single_Expressions($3));
 		}
 ;
 
-expr_list_semicolon_sep : expr ';'			/* Single expression */
+expr_list_semicolon_sep : expr ';'									/* Single expression */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Expressions($1);
 		}
-		| expr_list_semicolon_sep expr ';'	/* Several expressions */
+		| expr_list_semicolon_sep expr ';'							/* Several expressions */
 		{
 			SET_NODELOC(@2);
 			$$ = append_Expressions($1, single_Expressions($2));
 		}
 ;
 
-// TODO: Implement other productions of expr.
 expr : OBJECTID ASSIGN expr
 		{
 			SET_NODELOC(@1);
 			$$ = assign($1, $3);
 		}
+		| expr '.' OBJECTID '(' expr_list_comma_sep ')'				/* Method dispatch */
+		{
+			SET_NODELOC(@1);
+			$$ = dispatch($1, $3, $5);
+		}
+		| expr '@' TYPEID '.' OBJECTID '(' expr_list_comma_sep ')'	/* Static method dispatch */
+		{
+			SET_NODELOC(@1);
+			$$ = static_dispatch($1, $3, $5, $7);
+		}
+		| OBJECTID '(' expr_list_comma_sep ')'						/* Constructor dispatch */
+		{
+			SET_NODELOC(@1);
+			//
+			// Add a string requires two steps. First, the list is searched; if the
+			// string is found, a pointer to the existing Entry for that string is 
+			// returned. If the string is not found, a new Entry is created and added
+			// to the list.
+			//
+			$$ = dispatch(object(idtable.add_string("self")), $1, $3);
+		}
+		| IF expr THEN expr ELSE expr FI							/* If-then-else conditional */
+		{
+			SET_NODELOC(@1);
+			$$ = cond($2, $4, $6);
+		}
+		| WHILE expr LOOP expr POOL									/* While loop */
+		{
+			SET_NODELOC(@1);
+			$$ = loop($2, $4);
+		}
+		| '{' expr_list_semicolon_sep '}'							/* Block */
+		{
+			SET_NODELOC(@1);
+			$$ = block($2);
+		}
+		| LET expr_let_body											/* Let expression */
+		{
+			SET_NODELOC(@1);
+			$$ = $2;
+		}
+		| CASE expr OF case_branch_list ESAC						/* Case expression */
+		{
+			SET_NODELOC(@1);
+			$$ = typcase($2, $4);
+		}
+		| NEW TYPEID												/* New expression */
+		{
+			SET_NODELOC(@1);
+			$$ = new_($2);
+		}
+		| ISVOID expr												/* Isvoid expression */
+		{
+			SET_NODELOC(@1);
+			$$ = isvoid($2);
+		}
+		| expr '+' expr												/* Addition */
+		{
+			SET_NODELOC(@1);
+			$$ = plus($1, $3);
+		}
+		| expr '-' expr												/* Subtraction */
+		{
+			SET_NODELOC(@1);
+			$$ = sub($1, $3);
+		}
+		| expr '*' expr												/* Multiplication */
+		{
+			SET_NODELOC(@1);
+			$$ = mul($1, $3);
+		}
+		| expr '/' expr												/* Division */
+		{
+			SET_NODELOC(@1);
+			$$ = divide($1, $3);
+		}
+		| '~' expr													/* Bitwise negation */
+		{
+			SET_NODELOC(@1);
+			$$ = neg($2);
+		}
+		| expr '<' expr												/* Less than */
+		{
+			SET_NODELOC(@1);
+			$$ = lt($1, $3);
+		}
+		| expr LE expr												/* Less than or equal to */
+		{
+			SET_NODELOC(@1);
+			$$ = leq($1, $3);
+		}
+		| expr '=' expr												/* Equality */
+		{
+			SET_NODELOC(@1);
+			$$ = eq($1, $3);
+		}
+		| NOT expr 													/* Bitwise complement */
+		{
+			SET_NODELOC(@1);
+			$$ = comp($2);
+		}
+		| '(' expr ')'												/* Parenthesized expression */
+		{
+			SET_NODELOC(@1);
+			$$ = $2;
+		}
+		| OBJECTID													/* Identifier */
+		{
+			SET_NODELOC(@1);
+			$$ = object($1);
+		}
+		| INT_CONST													/* Integer constant */
+		{
+			SET_NODELOC(@1);
+			$$ = int_const($1);
+		}
+		| STR_CONST 												/* String constant */
+		{
+			SET_NODELOC(@1);
+			$$ = string_const($1);
+		}
+		| BOOL_CONST												/* Boolean constant */
+		{
+			SET_NODELOC(@1);
+			$$ = bool_const($1);
+		}
 ;
 
-expr_let_body : OBJECTID ':' TYPEID IN expr					/* Single expression in let body expression list */
+expr_let_body : OBJECTID ':' TYPEID IN expr							/* Single expression in let body expression list */
 		{
 			SET_NODELOC(@1);
 			// Constructor signature: let(name, type, initialization, expression)
 			$$ = let($1, $3, no_expr(), $5);
 		}
-		| OBJECTID ':' TYPEID ASSIGN expr IN expr 			/* Single expression with assignment in let body expression list */
+		| OBJECTID ':' TYPEID ASSIGN expr IN expr 					/* Single expression with assignment in let body expression list */
 		{
 			SET_NODELOC(@1);
 			$$ = let($1, $3, $5, $7);
 		}
-		| OBJECTID ':' TYPEID ',' expr_let_body				/* Several expressions in let body expression list */
+		| OBJECTID ':' TYPEID ',' expr_let_body						/* Several expressions in let body expression list */
 		{
 			SET_NODELOC(@1);
 			$$ = let($1, $3, no_expr(), $5);
 		}
-		| OBJECTID ':' TYPEID ASSIGN expr ',' expr_let_body	/* Several expressions with assignment in let body expression list */
+		| OBJECTID ':' TYPEID ASSIGN expr ',' expr_let_body			/* Several expressions with assignment in let body expression list */
 		{
 			SET_NODELOC(@1);
 			$$ = let($1, $3, $5, $7);
 		}
 ;
 
-// TODO: Implement productions of case related non-terminals.
-// ...
+case_branch_list: case_ ';'											/* Single case branch */
+		{
+			SET_NODELOC(@1);
+			$$ = single_Cases($1);
+		}
+		| case_branch_list case_ ';'								/* Several case branches */
+		{
+			SET_NODELOC(@1);
+			$$ = append_Cases($1, single_Cases($2));
+		}
+;
+
+case_: OBJECTID ':' TYPEID DARROW expr								/* Case branch */
+		{
+			SET_NODELOC(@1);
+			$$ = branch($1, $3, $5);
+		}
+;
+
 
 %%
 /********************* END OF GRAMMAR RULES SECTION *********************/
