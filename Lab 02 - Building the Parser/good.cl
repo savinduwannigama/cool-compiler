@@ -1,6 +1,17 @@
 class A inherits IO {
     ana(): Int {
-        (let x:Int <- 1 in 2) + 3
+        (
+            let x:Int <- 1 in
+                (
+                    let y:Int <- 2 in
+                        (
+                            let z:Int <- 3, w:Int <- 4 in
+                                (
+                                    let v:Int <- 5 in x + y + z + w
+                                )
+                        )
+                )
+        ) + 5 -- Expected result: 1 + 2 + 3 + 4 + 5 = 15
     };
 
     precedenceTest(): Int {

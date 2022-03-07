@@ -204,7 +204,7 @@ class_list : class													/* Single class */
 		| class_list class											/* Several classes */
 		{
 			SET_NODELOC(@2);
-			$$ = append_Classes($2, single_Classes($1)); 
+			$$ = append_Classes($1, single_Classes($2)); 
 			parse_results = $$; 
 		}
 		| class_list error ';'										/* On error inside a class definition, skip to the next class if class is properly terminated with ';' */
@@ -237,7 +237,7 @@ feature_list : %empty
 			SET_NODELOC(@2);
 			$$ = append_Features($1, single_Features($2));
 		}
-		| feature_list error ';'									/* On error, skip until the next semicolon is read */
+		| feature_list error ';'									/* On error in feature declarations, skip to the next feature */
 		{
 			$$ = nil_Features();
 		}
@@ -472,7 +472,7 @@ expr_let_body : OBJECTID ':' TYPEID IN expr		  %prec SINGLE_LET	/* Single expres
 			SET_NODELOC(@1);
 			$$ = let($1, $3, $5, $7);
 		}
-		| error ',' expr_let_body									/* On error, skip until next comma and continue */
+		| error ',' expr_let_body									/* On error in binding, skip to the next binding */
 ;
 
 case_branch_list : case_											/* Single case branch */

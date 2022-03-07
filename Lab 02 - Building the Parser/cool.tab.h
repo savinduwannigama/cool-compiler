@@ -1,9 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.8.1.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
-   Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -31,10 +30,6 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
-   especially those whose name start with YY_ or yy_.  They are
-   private implementation details that can be changed or removed.  */
-
 #ifndef YY_COOL_YY_COOL_TAB_H_INCLUDED
 # define YY_COOL_YY_COOL_TAB_H_INCLUDED
 /* Debug traces.  */
@@ -45,50 +40,41 @@
 extern int cool_yydebug;
 #endif
 
-/* Token kinds.  */
+/* Token type.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    YYEMPTY = -2,
-    YYEOF = 0,                     /* "end of file"  */
-    YYerror = 256,                 /* error  */
-    YYUNDEF = 284,                 /* "invalid token"  */
-    CLASS = 258,                   /* CLASS  */
-    ELSE = 259,                    /* ELSE  */
-    FI = 260,                      /* FI  */
-    IF = 261,                      /* IF  */
-    IN = 262,                      /* IN  */
-    INHERITS = 263,                /* INHERITS  */
-    LET = 264,                     /* LET  */
-    LOOP = 265,                    /* LOOP  */
-    POOL = 266,                    /* POOL  */
-    THEN = 267,                    /* THEN  */
-    WHILE = 268,                   /* WHILE  */
-    CASE = 269,                    /* CASE  */
-    ESAC = 270,                    /* ESAC  */
-    OF = 271,                      /* OF  */
-    DARROW = 272,                  /* DARROW  */
-    NEW = 273,                     /* NEW  */
-    ISVOID = 274,                  /* ISVOID  */
-    STR_CONST = 275,               /* STR_CONST  */
-    INT_CONST = 276,               /* INT_CONST  */
-    BOOL_CONST = 277,              /* BOOL_CONST  */
-    TYPEID = 278,                  /* TYPEID  */
-    OBJECTID = 279,                /* OBJECTID  */
-    ASSIGN = 280,                  /* ASSIGN  */
-    NOT = 281,                     /* NOT  */
-    LE = 282,                      /* LE  */
-    ERROR = 283,                   /* ERROR  */
-    SINGLE_LET = 285               /* SINGLE_LET  */
+    CLASS = 258,
+    ELSE = 259,
+    FI = 260,
+    IF = 261,
+    IN = 262,
+    INHERITS = 263,
+    LET = 264,
+    LOOP = 265,
+    POOL = 266,
+    THEN = 267,
+    WHILE = 268,
+    CASE = 269,
+    ESAC = 270,
+    OF = 271,
+    DARROW = 272,
+    NEW = 273,
+    ISVOID = 274,
+    STR_CONST = 275,
+    INT_CONST = 276,
+    BOOL_CONST = 277,
+    TYPEID = 278,
+    OBJECTID = 279,
+    ASSIGN = 280,
+    NOT = 281,
+    LE = 282,
+    ERROR = 283,
+    SINGLE_LET = 285
   };
-  typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Token kinds.  */
-#define YYEMPTY -2
-#define YYEOF 0
-#define YYerror 256
-#define YYUNDEF 284
+/* Tokens.  */
 #define CLASS 258
 #define ELSE 259
 #define FI 260
@@ -119,9 +105,10 @@ extern int cool_yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+
 union YYSTYPE
 {
-#line 101 "cool.y"
+#line 101 "cool.y" /* yacc.c:1909  */
 
 	Boolean boolean;
 	Symbol symbol;
@@ -138,9 +125,9 @@ union YYSTYPE
 	Expressions expressions;
 	char *error_msg;
 
-#line 142 "cool.tab.h"
-
+#line 129 "cool.tab.h" /* yacc.c:1909  */
 };
+
 typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -163,8 +150,6 @@ struct YYLTYPE
 
 extern YYSTYPE cool_yylval;
 extern YYLTYPE cool_yylloc;
-
 int cool_yyparse (void);
-
 
 #endif /* !YY_COOL_YY_COOL_TAB_H_INCLUDED  */
