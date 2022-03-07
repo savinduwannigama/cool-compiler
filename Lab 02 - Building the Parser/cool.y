@@ -208,13 +208,13 @@ class_list : class ';'												/* Single class */
 ;
 
 /* If no parent is specified, the class inherits from the Object class. */
-class : CLASS TYPEID '{' feature_list '}' ';'
+class : CLASS TYPEID '{' feature_list '}'
 		{
 			SET_NODELOC(@1);
 			// Constructor signature: class_(name, parent, fratures, filename)
 			$$ = class_($2, idtable.add_string("Object"), $4, stringtable.add_string(curr_filename)); 
 		}
-		| CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
+		| CLASS TYPEID INHERITS TYPEID '{' feature_list '}'
 		{
 			SET_NODELOC(@1);
 			$$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
@@ -462,7 +462,7 @@ expr_let_body : OBJECTID ':' TYPEID IN expr							/* Single expression in let bo
 		}
 ;
 
-case_branch_list: case_ ';'											/* Single case branch */
+case_branch_list : case_ ';'										/* Single case branch */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Cases($1);
@@ -474,7 +474,7 @@ case_branch_list: case_ ';'											/* Single case branch */
 		}
 ;
 
-case_: OBJECTID ':' TYPEID DARROW expr								/* Case branch */
+case_ : OBJECTID ':' TYPEID DARROW expr								/* Case branch */
 		{
 			SET_NODELOC(@1);
 			$$ = branch($1, $3, $5);
