@@ -170,6 +170,7 @@ documentation for details). */
 %left '*' '/'
 %precedence ISVOID
 %precedence '~'
+%left '@'
 %precedence '.'
 
 /***************** END OF BISON DECLARATIONS SECTION *******************/
@@ -206,6 +207,9 @@ class_list : class ';'												/* Single class */
 			parse_results = $$; 
 		}
 		| class_list error ';'										/* On error, skip until the next semicolon is read */
+		{
+			$$ = nil_Classes();
+		}
 ;
 
 /* If no parent is specified, the class inherits from the Object class. */
