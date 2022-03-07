@@ -194,37 +194,33 @@ program	: class_list
 ;
 
 /* There can be a single class or several classes in the class list of the program. */
-class_list : class ';'												/* Single class */
+class_list : class													/* Single class */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Classes($1);
 			parse_results = $$; 
 		}
-		| class_list class ';'										/* Several classes */
+		| class class_list											/* Several classes */
 		{
 			SET_NODELOC(@2);
-			$$ = append_Classes($1, single_Classes($2)); 
+			$$ = append_Classes($2, single_Classes($1)); 
 			parse_results = $$; 
-		}
-		| class_list error ';'										/* On error, skip until the next semicolon is read */
-		{
-			$$ = nil_Classes();
 		}
 ;
 
 /* If no parent is specified, the class inherits from the Object class. */
-class : CLASS TYPEID '{' feature_list '}'
+class : CLASS TYPEID '{' feature_list '}' ';'
 		{
 			SET_NODELOC(@1);
 			// Constructor signature: class_(name, parent, fratures, filename)
 			$$ = class_($2, idtable.add_string("Object"), $4, stringtable.add_string(curr_filename)); 
 		}
-		| CLASS TYPEID INHERITS TYPEID '{' feature_list '}'
+		| CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
 		{
 			SET_NODELOC(@1);
 			$$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
 		}
-		| error
+		| error ';'
 ;
 
 /* Feature list may be empty (i.e. the optional feature list), but no empty features in list. */
@@ -232,35 +228,37 @@ feature_list : %empty
 		{
 			$$ = nil_Features();
 		}
-		| feature ';'												/* Single feature */
+		| feature													/* Single feature */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Features($1);
 		}
-		| feature_list feature ';'									/* Several features */
+		| feature_list feature										/* Several features */
 		{
 			SET_NODELOC(@2);
 			$$ = append_Features($1, single_Features($2));
 		}
 		| feature_list error ';'									/* On error, skip until the next semicolon is read */
+		{
+			$$ = nil_Features();
+		}
 ;
 
-feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'		/* A feature can be a method */
+feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'	';'	/* A feature can be a method */
 		{
 			SET_NODELOC(@1);
 			$$ = method($1, $3, $6, $8);
 		}
-		| OBJECTID ':' TYPEID										/* A feature can be an attribute declaration without initialization */
+		| OBJECTID ':' TYPEID ';'									/* A feature can be an attribute declaration without initialization */
 		{
 			SET_NODELOC(@1);
 			$$ = attr($1, $3, no_expr());
 		}
-		| OBJECTID ':' TYPEID ASSIGN expr							/* A feature can be an attribute declaration with initialization */
+		| OBJECTID ':' TYPEID ASSIGN expr ';'						/* A feature can be an attribute declaration with initialization */
 		{
 			SET_NODELOC(@1);
 			$$ = attr($1, $3, $5);
 		}
-		| error
 ;
 
 formal_list : %empty												/* Empty formal list (when it is optional) */
