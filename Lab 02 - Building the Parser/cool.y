@@ -172,6 +172,7 @@ documentation for details). */
 %precedence '~'
 %left '@'
 %precedence '.'
+%precedence SINGLE_LET
 
 /***************** END OF BISON DECLARATIONS SECTION *******************/
 
@@ -200,11 +201,15 @@ class_list : class													/* Single class */
 			$$ = single_Classes($1);
 			parse_results = $$; 
 		}
-		| class class_list											/* Several classes */
+		| class_list class											/* Several classes */
 		{
 			SET_NODELOC(@2);
 			$$ = append_Classes($2, single_Classes($1)); 
 			parse_results = $$; 
+		}
+		| class_list error ';'										/* On error inside a class definition, skip to the next class if class is properly terminated with ';' */
+		{
+			$$ = nil_Classes();
 		}
 ;
 
@@ -220,7 +225,6 @@ class : CLASS TYPEID '{' feature_list '}' ';'
 			SET_NODELOC(@1);
 			$$ = class_($2, $4, $6, stringtable.add_string(curr_filename)); 
 		}
-		| error ';'
 ;
 
 /* Feature list may be empty (i.e. the optional feature list), but no empty features in list. */
@@ -228,12 +232,7 @@ feature_list : %empty
 		{
 			$$ = nil_Features();
 		}
-		| feature													/* Single feature */
-		{
-			SET_NODELOC(@1);
-			$$ = single_Features($1);
-		}
-		| feature_list feature										/* Several features */
+		| feature_list feature										/* One or more features */
 		{
 			SET_NODELOC(@2);
 			$$ = append_Features($1, single_Features($2));
@@ -244,7 +243,7 @@ feature_list : %empty
 		}
 ;
 
-feature :  OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'	';'	/* A feature can be a method */
+feature : OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'	';'	/* A feature can be a method */
 		{
 			SET_NODELOC(@1);
 			$$ = method($1, $3, $6, $8);
@@ -451,13 +450,14 @@ expr : OBJECTID ASSIGN expr
 		}
 ;
 
-expr_let_body : OBJECTID ':' TYPEID IN expr							/* Single expression in let body expression list */
+// Resolve shift/reduce conflict -> Give precedence to a single let binding
+expr_let_body : OBJECTID ':' TYPEID IN expr		  %prec SINGLE_LET	/* Single expression in let body expression list */
 		{
 			SET_NODELOC(@1);
 			// Constructor signature: let(name, type, initialization, expression)
 			$$ = let($1, $3, no_expr(), $5);
 		}
-		| OBJECTID ':' TYPEID ASSIGN expr IN expr 					/* Single expression with assignment in let body expression list */
+		| OBJECTID ':' TYPEID ASSIGN expr IN expr %prec SINGLE_LET	/* Single expression with assignment in let body expression list */
 		{
 			SET_NODELOC(@1);
 			$$ = let($1, $3, $5, $7);
@@ -475,12 +475,12 @@ expr_let_body : OBJECTID ':' TYPEID IN expr							/* Single expression in let bo
 		| error ',' expr_let_body									/* On error, skip until next comma and continue */
 ;
 
-case_branch_list : case_ ';'										/* Single case branch */
+case_branch_list : case_											/* Single case branch */
 		{
 			SET_NODELOC(@1);
 			$$ = single_Cases($1);
 		}
-		| case_branch_list case_ ';'								/* Several case branches */
+		| case_branch_list case_									/* Several case branches */
 		{
 			SET_NODELOC(@1);
 			$$ = append_Cases($1, single_Cases($2));
@@ -488,7 +488,7 @@ case_branch_list : case_ ';'										/* Single case branch */
 		| case_branch_list error ';'								/* On error, skip until next semicolon */
 ;
 
-case_ : OBJECTID ':' TYPEID DARROW expr								/* Case branch */
+case_ : OBJECTID ':' TYPEID DARROW expr	';'							/* Case branch */
 		{
 			SET_NODELOC(@1);
 			$$ = branch($1, $3, $5);
