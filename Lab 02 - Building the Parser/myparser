@@ -1,0 +1,3 @@
+#!/bin/csh -f
+# ../../cool/bin/lexer $* | ./parser $*
+../Lab\ 01\ -\ Building\ the\ Lexical\ Analyzer/lexer $* | ./parser $*
